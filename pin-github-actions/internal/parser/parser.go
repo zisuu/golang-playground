@@ -3,65 +3,73 @@ package parser
 import (
 	"fmt"
 	"github.com/zisuu/pin-github-actions/pgk/types"
-	"regexp"
 	"strings"
-)
 
-var (
-	// Strict pattern for valid actions
-	actionPattern = regexp.MustCompile(`(?m)^\s*-\s+uses:\s*([^\s@]+)@([^\s#]+)`)
-	// Loose pattern to detect any uses line
-	usesLinePattern = regexp.MustCompile(`(?m)^\s*-\s+uses:\s*([^\s#]+)`)
+	"gopkg.in/yaml.v3"
 )
 
 func ParseWorkflowActions(content []byte) ([]types.ActionRef, error) {
+	var workflow struct {
+		Jobs map[string]struct {
+			Steps []struct {
+				Uses string `yaml:"uses"`
+			} `yaml:"steps"`
+		} `yaml:"jobs"`
+	}
+
+	if err := yaml.Unmarshal(content, &workflow); err != nil {
+		return nil, fmt.Errorf("failed to parse YAML: %w", err)
+	}
+
 	var actions []types.ActionRef
-	strContent := string(content)
+	for _, job := range workflow.Jobs {
+		for _, step := range job.Steps {
+			if step.Uses == "" {
+				continue
+			}
 
-	// First find all lines with uses:
-	usesLines := usesLinePattern.FindAllStringSubmatch(strContent, -1)
-	for _, line := range usesLines {
-		if len(line) < 2 {
-			continue
+			action, err := parseActionString(step.Uses)
+			if err != nil {
+				return nil, fmt.Errorf("invalid action reference %q: %w", step.Uses, err)
+			}
+			actions = append(actions, *action)
 		}
-
-		fullRef := strings.TrimSpace(line[1])
-
-		// Skip local and docker actions
-		if strings.HasPrefix(fullRef, ".") || strings.HasPrefix(fullRef, "docker://") {
-			continue
-		}
-
-		// Check if it matches the strict pattern
-		if !actionPattern.MatchString(line[0]) {
-			return nil, fmt.Errorf("invalid action reference: %q", fullRef)
-		}
-
-		// Now extract parts using the strict pattern
-		match := actionPattern.FindStringSubmatch(line[0])
-		if len(match) != 3 {
-			continue
-		}
-
-		fullRepo := match[1]
-		ref := match[2]
-
-		parts := strings.Split(fullRepo, "/")
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid action reference: %s", fullRepo)
-		}
-
-		// Validate there are no empty parts
-		if parts[0] == "" || parts[1] == "" || ref == "" {
-			return nil, fmt.Errorf("invalid action reference: %s@%s", fullRepo, ref)
-		}
-
-		actions = append(actions, types.ActionRef{
-			Owner: parts[0],
-			Repo:  parts[1],
-			Ref:   ref,
-		})
 	}
 
 	return actions, nil
+}
+
+func parseActionString(actionStr string) (*types.ActionRef, error) {
+	// Skip local and docker actions
+	if strings.HasPrefix(actionStr, ".") || strings.HasPrefix(actionStr, "docker://") {
+		return nil, fmt.Errorf("local/docker action skipped")
+	}
+
+	// Split into repo@ref parts
+	parts := strings.Split(actionStr, "@")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("missing @ symbol in action reference")
+	}
+
+	fullRepo := parts[0]
+	ref := parts[1]
+
+	// Split owner/repo
+	repoParts := strings.Split(fullRepo, "/")
+	if len(repoParts) != 2 {
+		return nil, fmt.Errorf("invalid repository format, expected owner/repo")
+	}
+
+	owner := repoParts[0]
+	repo := repoParts[1]
+
+	if owner == "" || repo == "" || ref == "" {
+		return nil, fmt.Errorf("empty component in action reference")
+	}
+
+	return &types.ActionRef{
+		Owner: owner,
+		Repo:  repo,
+		Ref:   ref,
+	}, nil
 }

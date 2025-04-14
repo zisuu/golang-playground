@@ -34,12 +34,61 @@ jobs:
 			},
 		},
 		{
+			name: "lint workflow",
+			content: `
+---
+name: Lint
+
+on:  # yamllint disable-line rule:truthy
+  pull_request: null
+
+env:
+  IGNORE_GITIGNORED_FILES: true
+  FILTER_REGEX_EXCLUDE: '.*dev-bundle/.*|.*mvnw.*|.*frontend/.*|.*CHANGELOG.md.*|.*LICENSE.md.*|.*README.md.*'
+  VALIDATE_GOOGLE_JAVA_FORMAT: false
+  VALIDATE_JAVA: false
+  VALIDATE_SQLFLUFF: false
+  VALIDATE_JSCPD: false
+
+permissions: {}
+
+jobs:
+  build:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+      # To report GitHub Actions status checks
+      statuses: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # super-linter needs the full git history to get the
+          # list of files that changed across commits
+          fetch-depth: 0
+
+      - name: Super-linter
+        uses: super-linter/super-linter@v6.7.0  # x-release-please-version
+        env:
+          # To report GitHub Actions status checks
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+`,
+			expected: []types.ActionRef{
+				{Owner: "actions", Repo: "checkout", Ref: "v4"},
+				{Owner: "super-linter", Repo: "super-linter", Ref: "v6.7.0"},
+			},
+		},
+		{
 			name: "with whitespace",
 			content: `
 steps:
   - uses:  actions/checkout  @v3
 `,
-			wantErr: true,
+			expected: nil,
 		},
 		{
 			name: "invalid action reference",
@@ -47,7 +96,7 @@ steps:
 steps:
   - uses: invalid-ref
 `,
-			wantErr: true,
+			expected: nil,
 		},
 		{
 			name: "missing version",
@@ -55,7 +104,7 @@ steps:
 steps:
   - uses: actions/checkout@
 `,
-			wantErr: true,
+			expected: nil,
 		},
 	}
 

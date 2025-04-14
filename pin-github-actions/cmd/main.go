@@ -1,35 +1,70 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"fmt"
-	"github.com/zisuu/pin-github-actions/internal/finder"
-	"github.com/zisuu/pin-github-actions/internal/parser"
-	"io/fs"
+	"log"
 	"os"
+	"time"
+
+	"github.com/zisuu/pin-github-actions/internal/finder"
+	"github.com/zisuu/pin-github-actions/internal/ghclient"
+	"github.com/zisuu/pin-github-actions/internal/updater"
 )
 
 func main() {
-	// Example usage:
-	fsys := os.DirFS(".")
-	files, err := finder.FindWorkflowFiles(fsys)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error finding workflow files: %v\n", err)
-		os.Exit(1)
+	// Command-line flags
+	dryRun := flag.Bool("dry-run", false, "Preview changes without modifying files")
+	dir := flag.String("dir", ".", "Directory containing GitHub workflows")
+	timeout := flag.Int("timeout", 30, "API timeout in seconds")
+	verbose := flag.Bool("v", false, "Verbose output")
+	flag.Parse()
+
+	// Setup
+	start := time.Now()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*timeout)*time.Second)
+	defer cancel()
+
+	if *verbose {
+		log.Println("Starting GitHub Actions pinning utility")
+		log.Printf("Scanning directory: %s", *dir)
 	}
 
-	for _, file := range files {
-		content, err := fs.ReadFile(fsys, file)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading %s: %v\n", file, err)
-			continue
-		}
+	// 1. Initialize all components
+	client := ghclient.NewDefaultClient()
+	newupdater := updater.NewUpdater(client, *dryRun)
+	fsys := os.DirFS(*dir)
 
-		actions, err := parser.ParseWorkflowActions(content)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error parsing %s: %v\n", file, err)
-			continue
-		}
+	// 2. Find workflow files (finder module)
+	if *verbose {
+		log.Println("Finding workflow files...")
+	}
+	files, err := finder.FindWorkflowFiles(fsys)
+	if err != nil {
+		log.Fatalf("Failed to find workflow files: %v", err)
+	}
 
-		fmt.Printf("Found %d actions in %s\n", len(actions), file)
+	if *verbose {
+		log.Printf("Found %d workflow files", len(files))
+	}
+
+	// 3. Parse and update files (parser + updater modules)
+	totalUpdates, err := newupdater.UpdateWorkflows(ctx, fsys)
+	if err != nil {
+		log.Fatalf("Failed to update workflows: %v", err)
+	}
+
+	// 4. Results
+	if *dryRun {
+		log.Printf("[DRY RUN] Would update %d action references", totalUpdates)
+	} else {
+		log.Printf("Updated %d action references in %v", totalUpdates, time.Since(start).Round(time.Millisecond))
+	}
+
+	if *verbose {
+		for _, file := range files {
+			fmt.Printf("- Processed: %s\n", file)
+		}
 	}
 }
