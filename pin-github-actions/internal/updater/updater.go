@@ -11,8 +11,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
+
+var shaRegex = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 
 type Updater struct {
 	Client ghclient.GitHubClient
@@ -103,15 +106,7 @@ func (u *Updater) UpdateWorkflows(ctx context.Context, fsys fs.FS) (int, error) 
 
 // isSHA checks if a string is a valid Git SHA-1 hash (40 hex characters)
 func isSHA(ref string) bool {
-	if len(ref) != 40 {
-		return false
-	}
-	for _, c := range ref {
-		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
-			return false
-		}
-	}
-	return true
+	return shaRegex.MatchString(ref)
 }
 
 func debugActions(actions []types.ActionRef) {
