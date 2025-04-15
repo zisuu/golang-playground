@@ -8,8 +8,8 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/zisuu/pin-github-actions/internal/updater"
-	"github.com/zisuu/pin-github-actions/pgk/types"
+	"github.com/zisuu/github-actions-digest-pinner/internal/updater"
+	"github.com/zisuu/github-actions-digest-pinner/pgk/types"
 )
 
 type mockGitHubClient struct {
@@ -102,7 +102,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v4.0.1
         with:
           java-version: '21'
           distribution: 'adopt'
@@ -152,9 +152,9 @@ jobs:
 `,
 			},
 			shaMap: map[string]string{
-				"actions/checkout@v4":   "a81bbbf8298c0fa03ea29cdc473d45769f953675",
-				"actions/setup-java@v4": "b72c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8g9h0i",
-				"actions/setup-node@v4": "c9d0e1f2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8",
+				"actions/checkout@v4":       "a81bbbf8298c0fa03ea29cdc473d45769f953675",
+				"actions/setup-java@v4.0.1": "b72c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8g9h0i",
+				"actions/setup-node@v4":     "c9d0e1f2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8",
 			},
 			wantUpdates: 3,
 		},
@@ -188,7 +188,7 @@ jobs:
 			wantUpdates: 1,
 		},
 		{
-			name: "don't update local action",
+			name: "skip local action but update others",
 			files: map[string]string{
 				".github/workflows/test-local-action.yml": `---
 on: push
@@ -196,6 +196,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Check if version was updated
         id: version-tag
         uses: ./.github/actions/setup-versions
@@ -203,13 +204,37 @@ jobs:
           branch_to_compare: ${{ github.base_ref }}
           file_path: ${{ env.file_path }}/cpu/VERSION
           deployment-tag: ${{ github.event.pull_request.merged }}
+      - uses: ../parent/local/action
+      - uses: docker://alpine:3.14
+      - uses: actions/setup-java@v4.0.1
 `,
 			},
-			expected:    map[string]string{}, // Empty because we expect an error
-			shaMap:      map[string]string{},
-			wantUpdates: 0,
-			wantErr:     true,
-			errContains: "local/docker action skipped",
+			expected: map[string]string{
+				".github/workflows/test-local-action.yml": `---
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675
+      - name: Check if version was updated
+        id: version-tag
+        uses: ./.github/actions/setup-versions
+        with:
+          branch_to_compare: ${{ github.base_ref }}
+          file_path: ${{ env.file_path }}/cpu/VERSION
+          deployment-tag: ${{ github.event.pull_request.merged }}
+      - uses: ../parent/local/action
+      - uses: docker://alpine:3.14
+      - uses: actions/setup-java@b72c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8g9h0i
+`,
+			},
+			shaMap: map[string]string{
+				"actions/checkout@v4":       "a81bbbf8298c0fa03ea29cdc473d45769f953675",
+				"actions/setup-java@v4.0.1": "b72c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8g9h0i",
+			},
+			wantUpdates: 2,
+			wantErr:     false,
 		},
 	}
 

@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"github.com/zisuu/pin-github-actions/pgk/types"
+	"github.com/zisuu/github-actions-digest-pinner/pgk/types"
 	"testing"
 )
 
@@ -105,6 +105,31 @@ steps:
   - uses: actions/checkout@
 `,
 			expected: nil,
+		},
+		{
+			name: "skip local actions",
+			content: `---
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check if version was updated
+        id: version-tag
+        uses: ./.github/actions/setup-versions
+        with:
+          branch_to_compare: ${{ github.base_ref }}
+          file_path: ${{ env.file_path }}/cpu/VERSION
+          deployment-tag: ${{ github.event.pull_request.merged }}
+      - uses: ../parent/local/action
+      - uses: docker://alpine:3.14
+      - uses: actions/setup-java@v4.0.1
+`,
+			expected: []types.ActionRef{
+				{Owner: "actions", Repo: "checkout", Ref: "v4"},
+				{Owner: "actions", Repo: "setup-java", Ref: "v4.0.1"},
+			},
 		},
 	}
 

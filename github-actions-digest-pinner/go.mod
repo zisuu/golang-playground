@@ -1,4 +1,4 @@
-module github.com/zisuu/pin-github-actions
+module github.com/zisuu/github-actions-digest-pinner
 
 go 1.24.2
 

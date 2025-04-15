@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/go-github/v71/github"
-	"github.com/zisuu/pin-github-actions/pgk/types"
+	"github.com/zisuu/github-actions-digest-pinner/pgk/types"
 	"net/http"
 )
 

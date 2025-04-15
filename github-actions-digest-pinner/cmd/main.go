@@ -8,9 +8,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/zisuu/pin-github-actions/internal/finder"
-	"github.com/zisuu/pin-github-actions/internal/ghclient"
-	"github.com/zisuu/pin-github-actions/internal/updater"
+	"github.com/zisuu/github-actions-digest-pinner/internal/finder"
+	"github.com/zisuu/github-actions-digest-pinner/internal/ghclient"
+	"github.com/zisuu/github-actions-digest-pinner/internal/updater"
 )
 
 func main() {

@@ -2,7 +2,7 @@ package parser
 
 import (
 	"fmt"
-	"github.com/zisuu/pin-github-actions/pgk/types"
+	"github.com/zisuu/github-actions-digest-pinner/pgk/types"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -28,6 +28,12 @@ func ParseWorkflowActions(content []byte) ([]types.ActionRef, error) {
 				continue
 			}
 
+			if strings.HasPrefix(step.Uses, "./") ||
+				strings.HasPrefix(step.Uses, "../") ||
+				strings.HasPrefix(step.Uses, "docker://") {
+				continue
+			}
+
 			action, err := parseActionString(step.Uses)
 			if err != nil {
 				return nil, fmt.Errorf("invalid action reference %q: %w", step.Uses, err)
@@ -40,11 +46,6 @@ func ParseWorkflowActions(content []byte) ([]types.ActionRef, error) {
 }
 
 func parseActionString(actionStr string) (*types.ActionRef, error) {
-	// Skip local and docker actions
-	if strings.HasPrefix(actionStr, ".") || strings.HasPrefix(actionStr, "docker://") {
-		return nil, fmt.Errorf("local/docker action skipped")
-	}
-
 	// Split into repo@ref parts
 	parts := strings.Split(actionStr, "@")
 	if len(parts) != 2 {

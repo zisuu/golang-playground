@@ -3,7 +3,7 @@ package ghclient
 import (
 	"context"
 	"fmt"
-	"github.com/zisuu/pin-github-actions/pgk/types"
+	"github.com/zisuu/github-actions-digest-pinner/pgk/types"
 	"testing"
 )
 
