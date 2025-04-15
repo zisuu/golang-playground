@@ -16,19 +16,14 @@ type DefaultGitHubClient struct {
 	*github.Client
 }
 
-// NewDefaultClient creates a new GitHub clien
+// NewDefaultClient creates a new GitHub client with the default HTTP client.
 func NewDefaultClient() *DefaultGitHubClient {
 	return &DefaultGitHubClient{
 		Client: github.NewClient(http.DefaultClient),
 	}
 }
 
-ent(http.DefaultClient),
-	}
-}
-
 // ResolveActionSHA resolves the SHA of a GitHub Action reference.
-func (c *De
 func (c *DefaultGitHubClient) ResolveActionSHA(ctx context.Context, action types.ActionRef) (string, error) {
 	commit, _, err := c.Repositories.GetCommitSHA1(ctx, action.Owner, action.Repo, action.Ref, "")
 	if err != nil {

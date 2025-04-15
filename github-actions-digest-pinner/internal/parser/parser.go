@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// ParseWorkflowActions parses a GitHub Actions workflow file and extr
+// ParseWorkflowActions parses a GitHub Actions workflow file and extracts action references.
 func ParseWorkflowActions(content []byte) ([]types.ActionRef, error) {
 	var workflow struct {
 		Jobs map[string]struct {
@@ -46,10 +46,7 @@ func ParseWorkflowActions(content []byte) ([]types.ActionRef, error) {
 	return actions, nil
 }
 
-return actions, nil
-}
-
-// parseActionString parses a string in the f
+// parseActionString parses a string in the format "owner/repo@ref" into an ActionRef struct.
 func parseActionString(actionStr string) (*types.ActionRef, error) {
 	// Split into repo@ref parts
 	parts := strings.Split(actionStr, "@")
