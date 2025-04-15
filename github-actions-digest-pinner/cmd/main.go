@@ -15,7 +15,6 @@ import (
 
 func main() {
 	// Command-line flags
-	dryRun := flag.Bool("dry-run", false, "Preview changes without modifying files")
 	dir := flag.String("dir", ".", "Directory containing GitHub workflows")
 	timeout := flag.Int("timeout", 30, "API timeout in seconds")
 	verbose := flag.Bool("v", false, "Verbose output")
@@ -32,8 +31,8 @@ func main() {
 	}
 
 	// 1. Initialize all components
-	client := ghclient.NewDefaultClient()
-	newupdater := updater.NewUpdater(client, *dryRun)
+	client := ghclient.NewGitHubClient()
+	newupdater := updater.NewUpdater(client)
 	fsys := os.DirFS(*dir)
 
 	// 2. Find workflow files (finder module)
@@ -56,11 +55,7 @@ func main() {
 	}
 
 	// 4. Results
-	if *dryRun {
-		log.Printf("[DRY RUN] Would update %d action references", totalUpdates)
-	} else {
-		log.Printf("Updated %d action references in %v", totalUpdates, time.Since(start).Round(time.Millisecond))
-	}
+	log.Printf("Updated %d action references in %v", totalUpdates, time.Since(start).Round(time.Millisecond))
 
 	if *verbose {
 		for _, file := range files {

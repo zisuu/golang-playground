@@ -131,6 +131,23 @@ jobs:
 				{Owner: "actions", Repo: "setup-java", Ref: "v4.0.1"},
 			},
 		},
+		{
+			name: "path-based action reference",
+			content: `
+jobs:
+  test:
+    steps:
+      - uses: myorg/actions-maven-setup/.github/actions/maven-setup@v1.0.1
+`,
+			expected: []types.ActionRef{
+				{
+					Owner: "myorg",
+					Repo:  "actions-maven-setup",
+					Path:  ".github/actions/maven-setup",
+					Ref:   "v1.0.1",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {

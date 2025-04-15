@@ -19,11 +19,10 @@ var shaRegex = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 
 type Updater struct {
 	Client ghclient.GitHubClient
-	DryRun bool // Add dry-run mode for testing/safety
 }
 
-func NewUpdater(client ghclient.GitHubClient, dryRun bool) *Updater {
-	return &Updater{Client: client, DryRun: dryRun}
+func NewUpdater(client ghclient.GitHubClient) *Updater {
+	return &Updater{Client: client}
 }
 
 // UpdateWorkflows scans for workflow files, parses them, and updates action references
@@ -115,11 +114,6 @@ func (u *Updater) updateSingleActionReference(ctx context.Context, content strin
 
 // writeUpdatedFile writes the updated content back to the file system
 func (u *Updater) writeUpdatedFile(fsys fs.FS, file string, content string) error {
-	if u.DryRun {
-		log.Printf("[DRY RUN] Would update file: %s", file)
-		return nil
-	}
-
 	if writeFS, ok := fsys.(interface {
 		WriteFile(name string, data []byte, perm fs.FileMode) error
 	}); ok {

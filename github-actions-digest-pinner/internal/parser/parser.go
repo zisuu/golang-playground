@@ -46,25 +46,29 @@ func ParseWorkflowActions(content []byte) ([]types.ActionRef, error) {
 	return actions, nil
 }
 
-// parseActionString parses a string in the format "owner/repo@ref" into an ActionRef struct.
+// parseActionString parses a string in the format "owner/repo/path@ref" into an ActionRef struct.
 func parseActionString(actionStr string) (*types.ActionRef, error) {
-	// Split into repo@ref parts
+	// Split into path@ref parts
 	parts := strings.Split(actionStr, "@")
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("missing @ symbol in action reference")
 	}
 
-	fullRepo := parts[0]
+	fullPath := parts[0]
 	ref := parts[1]
 
-	// Split owner/repo
-	repoParts := strings.Split(fullRepo, "/")
-	if len(repoParts) != 2 {
-		return nil, fmt.Errorf("invalid repository format, expected owner/repo")
+	// Split into components
+	pathParts := strings.Split(fullPath, "/")
+	if len(pathParts) < 2 {
+		return nil, fmt.Errorf("invalid repository format, expected at least owner/repo")
 	}
 
-	owner := repoParts[0]
-	repo := repoParts[1]
+	owner := pathParts[0]
+	repo := pathParts[1]
+	path := ""
+	if len(pathParts) > 2 {
+		path = strings.Join(pathParts[2:], "/")
+	}
 
 	if owner == "" || repo == "" || ref == "" {
 		return nil, fmt.Errorf("empty component in action reference")
@@ -73,6 +77,7 @@ func parseActionString(actionStr string) (*types.ActionRef, error) {
 	return &types.ActionRef{
 		Owner: owner,
 		Repo:  repo,
+		Path:  path,
 		Ref:   ref,
 	}, nil
 }
