@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// FindWorkflowFiles scans the provided filesystem for
 func FindWorkflowFiles(fsys fs.FS) ([]string, error) {
 	var workflowFiles []string
 
