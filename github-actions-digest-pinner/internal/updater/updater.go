@@ -18,11 +18,15 @@ import (
 var shaRegex = regexp.MustCompile(`^[0-9a-fA-F]{40}$`)
 
 type Updater struct {
-	Client ghclient.GitHubClient
+	Client  ghclient.GitHubClient
+	baseDir string
 }
 
-func NewUpdater(client ghclient.GitHubClient) *Updater {
-	return &Updater{Client: client}
+func NewUpdater(client ghclient.GitHubClient, baseDir string) *Updater {
+	return &Updater{
+		Client:  client,
+		baseDir: baseDir,
+	}
 }
 
 // UpdateWorkflows scans for workflow files, parses them, and updates action references
@@ -107,24 +111,42 @@ func (u *Updater) updateSingleActionReference(ctx context.Context, content strin
 	}
 	log.Printf("Resolved SHA for %s/%s@%s: %s", action.Owner, action.Repo, action.Ref, sha)
 
-	oldRef := fmt.Sprintf("%s/%s@%s", action.Owner, action.Repo, action.Ref)
-	newRef := fmt.Sprintf("%s/%s@%s", action.Owner, action.Repo, sha)
-	return strings.ReplaceAll(content, oldRef, newRef), true, nil
+	// Build the exact reference string that appears in the workflow file
+	var oldRef string
+	if action.Path != "" {
+		oldRef = fmt.Sprintf("%s/%s/%s@%s", action.Owner, action.Repo, action.Path, action.Ref)
+	} else {
+		oldRef = fmt.Sprintf("%s/%s@%s", action.Owner, action.Repo, action.Ref)
+	}
+
+	newRef := strings.Replace(oldRef, action.Ref, sha, 1)
+
+	if !strings.Contains(content, oldRef) {
+		log.Printf("Warning: reference %s not found in content", oldRef)
+		return content, false, nil
+	}
+
+	updated := strings.Replace(content, oldRef, newRef, 1)
+	if updated == content {
+		log.Printf("Warning: no changes made for %s (reference not found or already updated)", oldRef)
+		return content, false, nil
+	}
+
+	return updated, true, nil
 }
 
 // writeUpdatedFile writes the updated content back to the file system
 func (u *Updater) writeUpdatedFile(fsys fs.FS, file string, content string) error {
+	// Check if the filesystem supports writing (for tests)
 	if writeFS, ok := fsys.(interface {
 		WriteFile(name string, data []byte, perm fs.FileMode) error
 	}); ok {
 		return writeFS.WriteFile(file, []byte(content), 0644)
 	}
 
-	absPath, err := filepath.Abs(file)
-	if err != nil {
-		return fmt.Errorf("failed to get absolute path for %s: %w", file, err)
-	}
-	return os.WriteFile(absPath, []byte(content), 0644)
+	// For real filesystem operations
+	fullPath := filepath.Join(u.baseDir, file)
+	return os.WriteFile(fullPath, []byte(content), 0644)
 }
 
 // isSHA checks if a string is a valid Git SHA-1 hash (40 hex characters)

@@ -7,7 +7,6 @@ import (
 	"github.com/zisuu/github-actions-digest-pinner/pgk/types"
 	"golang.org/x/oauth2"
 	"os"
-	"strings"
 )
 
 type GitHubClient interface {
@@ -45,45 +44,25 @@ func (g *githubClient) ResolveActionSHA(ctx context.Context, action types.Action
 		return action.Ref, nil
 	}
 
-	// For actions with paths, we need to get the repo's default branch first
-	var ref *github.Reference
-	var err error
-
-	// First try as a tag
-	ref, _, err = g.client.Git.GetRef(ctx, action.Owner, action.Repo, fmt.Sprintf("refs/tags/%s", action.Ref))
+	// Get the tag reference
+	ref, _, err := g.client.Git.GetRef(ctx, action.Owner, action.Repo, "tags/"+action.Ref)
 	if err != nil {
 		// Try as a branch if tag not found
-		ref, _, err = g.client.Git.GetRef(ctx, action.Owner, action.Repo, fmt.Sprintf("refs/heads/%s", action.Ref))
+		ref, _, err = g.client.Git.GetRef(ctx, action.Owner, action.Repo, "heads/"+action.Ref)
 		if err != nil {
-			// If we still can't find it, try getting the default branch
-			repo, _, err := g.client.Repositories.Get(ctx, action.Owner, action.Repo)
-			if err != nil {
-				return "", fmt.Errorf("failed to resolve ref %s: %w", action.Ref, err)
-			}
-			defaultBranch := repo.GetDefaultBranch()
-			if defaultBranch == "" {
-				defaultBranch = "main" // fallback
-			}
-			ref, _, err = g.client.Git.GetRef(ctx, action.Owner, action.Repo,
-				fmt.Sprintf("refs/heads/%s", defaultBranch))
-			if err != nil {
-				return "", fmt.Errorf("failed to resolve ref %s: %w", action.Ref, err)
-			}
+			return "", fmt.Errorf("failed to resolve ref %s: %w", action.Ref, err)
 		}
 	}
 
-	sha := strings.TrimPrefix(ref.GetRef(), "refs/heads/")
-	sha = strings.TrimPrefix(sha, "refs/tags/")
-	return sha, nil
+	// Return the SHA of the tag object itself
+	return ref.GetObject().GetSHA(), nil
 }
 
 func isSHA(ref string) bool {
-	// Your existing SHA validation logic
-	return len(ref) == 40 && isHexString(ref)
-}
-
-func isHexString(s string) bool {
-	for _, c := range s {
+	if len(ref) != 40 {
+		return false
+	}
+	for _, c := range ref {
 		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
 			return false
 		}

@@ -32,7 +32,7 @@ func main() {
 
 	// 1. Initialize all components
 	client := ghclient.NewGitHubClient()
-	newupdater := updater.NewUpdater(client)
+	newupdater := updater.NewUpdater(client, ".")
 	fsys := os.DirFS(*dir)
 
 	// 2. Find workflow files (finder module)

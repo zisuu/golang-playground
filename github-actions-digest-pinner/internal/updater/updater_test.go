@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
-	"time"
 
 	"github.com/zisuu/github-actions-digest-pinner/internal/updater"
 	"github.com/zisuu/github-actions-digest-pinner/pgk/types"
@@ -27,9 +26,8 @@ type writableMapFS struct {
 
 func (w *writableMapFS) WriteFile(name string, data []byte, perm fs.FileMode) error {
 	w.MapFS[name] = &fstest.MapFile{
-		Data:    data,
-		Mode:    perm,
-		ModTime: time.Now(),
+		Data: data,
+		Mode: perm,
 	}
 	return nil
 }
@@ -240,7 +238,7 @@ jobs:
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Setup filesystem
+			// Setup writable filesystem
 			memFS := &writableMapFS{MapFS: make(fstest.MapFS)}
 			for name, content := range tc.files {
 				memFS.MapFS[name] = &fstest.MapFile{Data: []byte(content)}
@@ -248,7 +246,7 @@ jobs:
 
 			// Run updater
 			client := &mockGitHubClient{shaMap: tc.shaMap}
-			u := updater.NewUpdater(client)
+			u := updater.NewUpdater(client, ".")
 			updates, err := u.UpdateWorkflows(context.Background(), memFS)
 
 			// Error handling
