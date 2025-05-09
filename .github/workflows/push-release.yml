@@ -39,10 +39,26 @@ jobs:
           go mod tidy
           go mod verify
 
-      - name: Release Please
+      - name: Build Binaries for All Platforms
+        run: |
+          platforms=("linux/amd64" "windows/amd64" "darwin/amd64")
+          for platform in "${platforms[@]}"; do
+            os=$(echo $platform | cut -d'/' -f1)
+            arch=$(echo $platform | cut -d'/' -f2)
+            output="release/blogposts-$os-$arch"
+            if [ "$os" == "windows" ]; then
+              output+=".exe"
+            fi
+            GOOS=$os GOARCH=$arch go build -o $output blogposts/cmd/main.go
+          done
+
+      - name: Configure Release Please for Multi-Platform Binary Upload
         uses: googleapis/release-please-action@a02a34c4d625f9be7cb89156071d8567266a2445  # v4.2.0
         with:
-          path: blogposts
           release-type: go
+          extra-files: |
+            release/blogposts-linux-amd64
+            release/blogposts-windows-amd64.exe
+            release/blogposts-darwin-amd64
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
