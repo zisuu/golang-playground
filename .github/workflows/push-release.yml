@@ -39,7 +39,7 @@ jobs:
         with:
           workdir: ./racer
           distribution: goreleaser
-          version: ~> 0.1
+          version: v2.9.0
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
