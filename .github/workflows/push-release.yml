@@ -16,10 +16,7 @@ permissions:
 
 jobs:
   versioning:
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      contains(github.event.head_commit.message, 'chore(release):') ||
-      startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e  # v2.0.6
@@ -47,7 +44,10 @@ jobs:
 
   release:
     needs: versioning
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, 'chore(release):') ||
+      startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e  # v2.0.6
