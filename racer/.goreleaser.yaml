@@ -18,7 +18,7 @@ builds:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
 archives:
-  - format: binary
+  - formats:  [ 'zip' ]
     name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
 
 checksum:
