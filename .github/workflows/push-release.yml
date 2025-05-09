@@ -34,7 +34,6 @@ jobs:
           package-name: golang-playground
           bump-minor-pre-major: true
           version-file: dictionary/version.go  # Update if you have a version file
-          command: manifest
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
 
