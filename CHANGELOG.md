@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/zisuu/golang-playground/compare/v1.0.0...v1.1.0) (2025-05-09)
+
+
+### Features
+
+* implement dictionary package with search, add, update, and dele functionalities; add tests for dictionary operations ([#25](https://github.com/zisuu/golang-playground/issues/25)) ([712da1c](https://github.com/zisuu/golang-playground/commit/712da1c18b6396fe21e75295509018f3bb9910dc))
+
 ## 1.0.0 (2025-05-09)
 
 
