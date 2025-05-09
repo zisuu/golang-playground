@@ -39,8 +39,8 @@ jobs:
       - name: Set outputs
         id: set-outputs
         run: |
-          echo "new_release=${{ steps.rp.outputs.release_created }}" >> $GITHUB_OUTPUT
-          echo "release_tag=${{ steps.rp.outputs.release_tag }}" >> $GITHUB_OUTPUT
+          echo "new_release=${{ steps.rp.outputs.release_created }}" >> "$GITHUB_OUTPUT"
+          echo "release_tag=${{ steps.rp.outputs.release_tag }}" >> "$GITHUB_OUTPUT"
 
   release:
     name: Create Release
@@ -65,14 +65,14 @@ jobs:
 
       - name: Validate Go module
         run: |
-          cd dictionary
+          cd golang-playground
           go mod tidy
           go mod verify
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552  # v6.3.0
         with:
-          workdir: ./dictionary
+          workdir: ./golang-playground
           distribution: goreleaser
           version: v2.9.0
           args: release --clean

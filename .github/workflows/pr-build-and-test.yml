@@ -18,11 +18,10 @@ jobs:
           - sum
           - shapes
           - wallet
-          - dictionary
+          - golang-playground/cmd
           - di
           - countdown
           - concurrency
-          - racer
           - reflection
           - sync
           - context

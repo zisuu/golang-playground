@@ -1,3 +1,4 @@
+---
 version: 2
 
 builds:
@@ -12,13 +13,13 @@ builds:
       - arm64
     #main: ./cmd/main.go
     #binary: github-actions-digest-pinner
-    binary: dictionary
-    main: main.go
+    binary: golang-playground
+    main: ./cmd/main.go
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
 archives:
-  - formats:  [ 'zip' ]
+  - formats: ["tar.gz", "zip"]
     name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
 
 checksum:
