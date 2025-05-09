@@ -65,14 +65,14 @@ jobs:
 
       - name: Validate Go module
         run: |
-          cd dictionary
+          cd golang-playground
           go mod tidy
           go mod verify
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552  # v6.3.0
         with:
-          workdir: ./dictionary
+          workdir: ./golang-playground
           distribution: goreleaser
           version: v2.9.0
           args: release --clean

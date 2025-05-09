@@ -1,8 +1,4 @@
-package main
-
-import (
-	"fmt"
-)
+package dictionary
 
 const (
 	ErrNotFound         = DictionaryErr("could not find the word you were looking for")
@@ -69,9 +65,4 @@ func (d Dictionary) Delete(word string) error {
 	}
 
 	return nil
-}
-
-func main() {
-	dict := Dictionary{"test": "this is just a test"}
-	fmt.Println(dict.Search("test"))
 }
