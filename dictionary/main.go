@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 )
 
 const (
@@ -73,11 +72,6 @@ func (d Dictionary) Delete(word string) error {
 }
 
 func main() {
-	if len(os.Args) > 1 && os.Args[1] == "--version" {
-		fmt.Printf("%s\nVersion: %s\nCommit: %s\nDate: %s\n",
-			os.Args[0], Version, Commit, Date)
-		os.Exit(0)
-	}
 	dict := Dictionary{"test": "this is just a test"}
 	fmt.Println(dict.Search("test"))
 }
