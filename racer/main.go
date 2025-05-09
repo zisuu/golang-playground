@@ -14,7 +14,7 @@ var (
 
 var tenSecondTimeout = 10 * time.Second
 
-func Racer(a, b string) (winner string, error error) {
+func main(a, b string) (winner string, error error) {
 	return ConfigurableRacer(a, b, tenSecondTimeout)
 }
 
