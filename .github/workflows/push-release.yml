@@ -45,11 +45,11 @@ jobs:
           for platform in "${platforms[@]}"; do
             os=$(echo $platform | cut -d'/' -f1)
             arch=$(echo $platform | cut -d'/' -f2)
-            output="release/blogposts-$os-$arch"
+            output="release/post-$os-$arch"
             if [ "$os" == "windows" ]; then
               output+=".exe"
             fi
-            GOOS=$os GOARCH=$arch go build -o $output blogposts/blogposts.go
+            GOOS=$os GOARCH=$arch go build -o $output blogposts/post.go
           done
 
       - name: Configure Release Please for Multi-Platform Binary Upload
@@ -57,8 +57,8 @@ jobs:
         with:
           release-type: go
           extra-files: |
-            release/blogposts-linux-amd64
-            release/blogposts-windows-amd64.exe
-            release/blogposts-darwin-amd64
+            release/post-linux-amd64
+            release/post-windows-amd64.exe
+            release/post-darwin-amd64
         env:
           GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
