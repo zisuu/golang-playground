@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
+
 var tenSecondTimeout = 10 * time.Second
 
 func Racer(a, b string) (winner string, error error) {

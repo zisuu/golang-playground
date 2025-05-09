@@ -1,6 +1,4 @@
-before:
-  hooks:
-    - go mod tidy
+version: 2
 
 builds:
   - env:
@@ -12,10 +10,12 @@ builds:
     goarch:
       - amd64
       - arm64
-#    binary: github-actions-digest-pinner
-#    main: ./cmd/main.go
+    #main: ./cmd/main.go
+    #binary: github-actions-digest-pinner
     binary: racer
-    main: ./racer/racer.go
+    main: ./racer/main.go
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
 archives:
   - format: binary
