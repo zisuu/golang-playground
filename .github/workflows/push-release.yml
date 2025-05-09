@@ -39,8 +39,8 @@ jobs:
       - name: Set outputs
         id: set-outputs
         run: |
-          echo "new_release=\"${{ steps.rp.outputs.release_created }}\"" >> $GITHUB_OUTPUT
-          echo "release_tag=\"${{ steps.rp.outputs.release_tag }}\"" >> $GITHUB_OUTPUT
+          echo "new_release=${{ steps.rp.outputs.release_created }}" >> "$GITHUB_OUTPUT"
+          echo "release_tag=${{ steps.rp.outputs.release_tag }}" >> "$GITHUB_OUTPUT"
 
   release:
     name: Create Release
