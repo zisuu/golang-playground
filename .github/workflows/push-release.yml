@@ -49,7 +49,7 @@ jobs:
             if [ "$os" == "windows" ]; then
               output+=".exe"
             fi
-            GOOS=$os GOARCH=$arch go build -o $output blogposts/cmd/main.go
+            GOOS=$os GOARCH=$arch go build -o $output blogposts/blogposts.go
           done
 
       - name: Configure Release Please for Multi-Platform Binary Upload
