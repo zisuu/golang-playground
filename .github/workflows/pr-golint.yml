@@ -17,7 +17,7 @@ jobs:
           - sum
           - shapes
           - wallet
-          - golang-playground
+          - ./
           - di
           - countdown
           - concurrency
