@@ -14,7 +14,7 @@ builds:
     #main: ./cmd/main.go
     #binary: github-actions-digest-pinner
     binary: golang-playground
-    main: ./cmd/main.go
+    main: main.go
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
 
